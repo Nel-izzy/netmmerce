@@ -7,36 +7,39 @@ import Header from "./Header";
 import { Container, CssBaseline, ThemeProvider, createTheme } from "@mui/material";
 import { useState } from "react";
 import { Outlet } from "react-router-dom";
+import { ToastContainer } from 'react-toastify';
+import "react-toastify/ReactToastify.css"
 
 
 
 function App() {
-const [darkMode, setDarkMode] = useState(false)  
-const mode = darkMode ? 'dark' : 'light'
+  const [darkMode, setDarkMode] = useState(false)
+  const mode = darkMode ? 'dark' : 'light'
   const theme = createTheme({
     palette: {
       mode,
-      background:{
-        default : mode === "light" ? "#eaeaea" : "#121212"
+      background: {
+        default: mode === "light" ? "#eaeaea" : "#121212"
       }
     }
   })
 
 
-const toggleMode = () => setDarkMode(!darkMode)
- 
+  const toggleMode = () => setDarkMode(!darkMode)
+
   return (
-    
-      <ThemeProvider theme={theme}>
+
+    <ThemeProvider theme={theme}>
+      <ToastContainer position='bottom-right' hideProgressBar theme='colored' />
       <CssBaseline />
-       <Header toggleMode={toggleMode} darkMode={darkMode}/>
-       <Container>
-       <Outlet />
-       </Container>
-     
-      </ThemeProvider>
-    
-    
+      <Header toggleMode={toggleMode} darkMode={darkMode} />
+      <Container>
+        <Outlet />
+      </Container>
+
+    </ThemeProvider>
+
+
   )
 }
 

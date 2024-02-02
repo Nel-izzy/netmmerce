@@ -1,38 +1,29 @@
+import agent from "../../app/api/agent";
+import Loader from "../../app/layout/Loader";
 import { Product } from "../../app/models/Product"
 import ProductList from "./ProductList";
 import { useEffect, useState } from "react";
 
 
 
-// function addProduct(){
-//   setProducts(prevState => [
-//     ...prevState,
-//     {
-//       id: prevState.length + 101,
-//       name: 'product' + (prevState.length + 1),
-//       price: (prevState.length * 100) + 100,
-//       brand: "Some brand",
-//       description: "some desc",
-//       pictureUrl: "http://picsum/photo/200"
-//     }
-//   ])
-// }
 
 const Catalog = () => {
   const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true)
 
-  
 
-useEffect(()=>{
-  fetch('http://localhost:5000/api/products')
-  .then(res=>res.json())
-  .then(data=> setProducts(data))
-}, [])
+  useEffect(() => {
+    agent.Catalog.list().then(products => setProducts(products))
+      .catch((error) => console.log(error))
+      .finally(() => setLoading(false))
+  }, [])
+
+  if (loading) return <Loader message="Loading Products..." />
 
   return (
     <>
-       <ProductList products={products}/>
-      
+      <ProductList products={products} />
+
     </>
   )
 }

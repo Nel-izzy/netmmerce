@@ -1,11 +1,14 @@
 using API.Data;
+using API.Middleware;
 using Microsoft.EntityFrameworkCore;
 var builder = WebApplication.CreateBuilder(args);
+
 
 // Add services to the container.
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-builder.Services.AddDbContext<StoreContext>(opt => {
+builder.Services.AddDbContext<StoreContext>(opt =>
+{
     opt.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection"));
 });
 
@@ -17,7 +20,11 @@ builder.Services.AddCors();
 
 var app = builder.Build();
 
+
+
 // Configure the HTTP request pipeline.
+
+app.UseMiddleware<ExceptionMiddleware>();
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -43,7 +50,7 @@ try
 }
 catch (Exception Ex)
 {
-    
+
     logger.LogError(Ex, "Problem ocurred during migration");
 }
 
