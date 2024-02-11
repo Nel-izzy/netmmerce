@@ -1,28 +1,61 @@
-import { useEffect, useState } from "react"
+import { ChangeEvent, useEffect, useState } from "react"
 import { useParams } from "react-router-dom"
 import { Product } from "../../app/models/Product";
-import { Box, Divider, Grid, Table, TableBody, TableCell, TableContainer, TableRow, Typography } from "@mui/material";
+import { Box, Divider, Grid, Table, TableBody, TableCell, TableContainer, TableRow, TextField, Typography } from "@mui/material";
 import agent from "../../app/api/agent";
 import NotFound from "../../app/errors/NotFound";
 import Loader from "../../app/layout/Loader";
+import { useStoreContext } from "../../app/context/StoreContext";
+import { LoadingButton } from "@mui/lab";
 
 
 
 
 
 const ProductDetails = () => {
+  const { basket, setBasket, removeItem } = useStoreContext()
   const { id } = useParams<{ id: string }>();
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
+  const [quantity, setQuantity] = useState(0)
+  const [submitting, setSubmitting] = useState(false)
+  const item = basket?.items.find(i => i.productId === product?.id)
+
 
 
   useEffect(() => {
+    if (item) setQuantity(item.quantity)
     id && agent.Catalog.details(parseInt(id))
       .then(res => setProduct(res))
       .catch(error => console.log(error))
       .finally(() => setLoading(false));
 
-  }, [id]);
+  }, [id, item]);
+
+  function handleInputChange(event: ChangeEvent<HTMLInputElement>) {
+    if (parseInt(event?.currentTarget.value) > 0) {
+      setQuantity(parseInt(event.currentTarget.value))
+    }
+  }
+
+  function handleUpdateCart() {
+    if (!product) return
+    setSubmitting(true)
+    if (!item || quantity > item?.quantity) {
+      const updateQuantity = item ? quantity - item.quantity : quantity
+      agent.Basket.addItem(product.id, updateQuantity)
+        .then(basket => setBasket(basket))
+        .catch(error => console.log(error))
+        .finally(() => setSubmitting(false))
+    } else {
+      const updateQuantity = item.quantity - quantity
+      agent.Basket.removeItem(product.id, updateQuantity)
+        .then(() => removeItem(product.id, updateQuantity))
+        .catch(error => console.log(error))
+        .finally(() => setSubmitting(false))
+    }
+
+  }
 
   if (loading) return <Loader message="Loading Product..." />
   if (!product) return <NotFound />
@@ -64,6 +97,33 @@ const ProductDetails = () => {
               </TableBody>
             </Table>
           </TableContainer>
+          <Grid container spacing={2}>
+            <Grid item xs={6}>
+              <TextField
+                variant="outlined"
+                type="number"
+                label='Quantity in Cart'
+                fullWidth
+                value={quantity}
+                onChange={handleInputChange}
+              />
+            </Grid>
+            <Grid item xs={6}>
+              <LoadingButton
+                sx={{ height: '55px' }}
+                color='primary'
+                variant="contained"
+                size='large'
+                fullWidth
+                loading={submitting}
+                onClick={handleUpdateCart}
+                disabled={item?.quantity === quantity || !item && quantity === 0}
+              >
+                {item ? 'Update quantity' : 'Add to Cart'}
+              </LoadingButton>
+            </Grid>
+          </Grid>
+
         </Grid>
       </Box>
     </Grid>

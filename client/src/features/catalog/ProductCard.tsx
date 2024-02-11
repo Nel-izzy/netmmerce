@@ -2,12 +2,30 @@
 import { Link } from 'react-router-dom'
 import { Product } from '../../app/models/Product'
 import { Card, Button, CardActions, CardContent, CardMedia, Typography, CardHeader, Avatar } from '@mui/material'
+import { useState } from 'react'
+import agent from '../../app/api/agent'
+import { LoadingButton } from '@mui/lab'
+import { useStoreContext } from '../../app/context/StoreContext'
+import { formatCurrency } from '../../app/utils/util'
 
 type Props = {
   product: Product
 }
 
 const ProductCard = ({ product }: Props) => {
+  const [loading, setLoading] = useState(false);
+  const { setBasket } = useStoreContext();
+
+  function handleAddItem(productId: number) {
+    setLoading(true);
+    agent.Basket.addItem(productId)
+      .then(basket => setBasket(basket))
+      .catch(error => console.log(error))
+      .finally(() => setLoading(false))
+
+
+  }
+
   return (
 
     <Card>
@@ -29,14 +47,14 @@ const ProductCard = ({ product }: Props) => {
       />
       <CardContent>
         <Typography gutterBottom variant="h5" color='secondary.main'>
-          ₦{(product.price / 100).toFixed(2)}
+          ₦{formatCurrency(product.price)}
         </Typography>
         <Typography variant="body2" color="text.secondary">
           {product.brand} / {product.type}
         </Typography>
       </CardContent>
       <CardActions>
-        <Button size="small">Add To Cart</Button>
+        <LoadingButton size="small" loading={loading} onClick={() => handleAddItem(product.id)}>Add To Cart</LoadingButton>
         <Button size="small" component={Link} to={`/catalog/${product.id}`}> View</Button>
       </CardActions>
     </Card>

@@ -5,14 +5,20 @@ import '@fontsource/roboto/500.css';
 import '@fontsource/roboto/700.css';
 import Header from "./Header";
 import { Container, CssBaseline, ThemeProvider, createTheme } from "@mui/material";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Outlet } from "react-router-dom";
 import { ToastContainer } from 'react-toastify';
 import "react-toastify/ReactToastify.css"
+import { useStoreContext } from '../context/StoreContext';
+import { getCookie } from '../utils/util';
+import agent from '../api/agent';
+import Loader from './Loader';
 
 
 
 function App() {
+  const { setBasket } = useStoreContext();
+  const [loading, setLoading] = useState(true);
   const [darkMode, setDarkMode] = useState(false)
   const mode = darkMode ? 'dark' : 'light'
   const theme = createTheme({
@@ -24,8 +30,22 @@ function App() {
     }
   })
 
+  useEffect(() => {
+    const buyerId = getCookie("buyerId");
+    if (buyerId) {
+      agent.Basket.get()
+        .then(basket => setBasket(basket))
+        .catch(error => console.log(error))
+        .finally(() => setLoading(false))
+    } else {
+      setLoading(false)
+    }
+  }, [setBasket])
+
 
   const toggleMode = () => setDarkMode(!darkMode)
+
+  if (loading) return <Loader message='Initialising App...' />
 
   return (
 
