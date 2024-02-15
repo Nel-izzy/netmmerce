@@ -44,7 +44,12 @@ const ProductCard = ({ product }: Props) => {
         </Typography>
       </CardContent>
       <CardActions>
-        <LoadingButton size="small" loading={status.includes('pending' + product.id)} onClick={() => dispatch(addBasketItemAsync({ productId: product.id }))}>Add To Cart</LoadingButton>
+        <LoadingButton
+          size="small"
+          loading={status.includes('pendingAddItem' + product.id)}
+          onClick={() => dispatch(addBasketItemAsync({ productId: product.id }))}
+        >Add To Cart
+        </LoadingButton>
         <Button size="small" component={Link} to={`/catalog/${product.id}`}> View</Button>
       </CardActions>
     </Card>

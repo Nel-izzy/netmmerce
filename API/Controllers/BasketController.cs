@@ -57,7 +57,7 @@ namespace API.Controllers
         {
             //get basket
             var basket = await RetrieveBasket();
-            if (basket == null) return NotFound();
+            if (basket == null) return BadRequest(new ProblemDetails { Title = "Product not found" });
             //remove item or reduce qty
 
             basket.RemoveItem(productId, quantity);
