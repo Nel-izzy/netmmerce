@@ -5,20 +5,22 @@ import { Box, Divider, Grid, Table, TableBody, TableCell, TableContainer, TableR
 import agent from "../../app/api/agent";
 import NotFound from "../../app/errors/NotFound";
 import Loader from "../../app/layout/Loader";
-import { useStoreContext } from "../../app/context/StoreContext";
 import { LoadingButton } from "@mui/lab";
+import { useAppDispatch, useAppSelector } from "../../app/store/configureStore";
+import { addBasketItemAsync, removeBasketItemAsync } from "../basket/basketSlice";
 
 
 
 
 
 const ProductDetails = () => {
-  const { basket, setBasket, removeItem } = useStoreContext()
+  const { basket, status } = useAppSelector(state => state.basket);
+  const dispatch = useAppDispatch();
   const { id } = useParams<{ id: string }>();
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
   const [quantity, setQuantity] = useState(0)
-  const [submitting, setSubmitting] = useState(false)
+
   const item = basket?.items.find(i => i.productId === product?.id)
 
 
@@ -40,19 +42,13 @@ const ProductDetails = () => {
 
   function handleUpdateCart() {
     if (!product) return
-    setSubmitting(true)
+
     if (!item || quantity > item?.quantity) {
-      const updateQuantity = item ? quantity - item.quantity : quantity
-      agent.Basket.addItem(product.id, updateQuantity)
-        .then(basket => setBasket(basket))
-        .catch(error => console.log(error))
-        .finally(() => setSubmitting(false))
+      const updatedQuantity = item ? quantity - item.quantity : quantity
+      dispatch(addBasketItemAsync({ productId: product?.id, quantity: updatedQuantity }))
     } else {
-      const updateQuantity = item.quantity - quantity
-      agent.Basket.removeItem(product.id, updateQuantity)
-        .then(() => removeItem(product.id, updateQuantity))
-        .catch(error => console.log(error))
-        .finally(() => setSubmitting(false))
+      const updatedQuantity = item.quantity - quantity
+      dispatch(removeBasketItemAsync({ productId: product?.id, quantity: updatedQuantity }))
     }
 
   }
@@ -115,7 +111,7 @@ const ProductDetails = () => {
                 variant="contained"
                 size='large'
                 fullWidth
-                loading={submitting}
+                loading={status.includes('pending')}
                 onClick={handleUpdateCart}
                 disabled={item?.quantity === quantity || !item && quantity === 0}
               >

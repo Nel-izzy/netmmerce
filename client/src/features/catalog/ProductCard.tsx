@@ -2,29 +2,19 @@
 import { Link } from 'react-router-dom'
 import { Product } from '../../app/models/Product'
 import { Card, Button, CardActions, CardContent, CardMedia, Typography, CardHeader, Avatar } from '@mui/material'
-import { useState } from 'react'
-import agent from '../../app/api/agent'
 import { LoadingButton } from '@mui/lab'
-import { useStoreContext } from '../../app/context/StoreContext'
 import { formatCurrency } from '../../app/utils/util'
+import { useAppDispatch, useAppSelector } from '../../app/store/configureStore'
+import { addBasketItemAsync } from '../basket/basketSlice'
 
 type Props = {
   product: Product
 }
 
 const ProductCard = ({ product }: Props) => {
-  const [loading, setLoading] = useState(false);
-  const { setBasket } = useStoreContext();
+  const { status } = useAppSelector(state => state.basket)
+  const dispatch = useAppDispatch()
 
-  function handleAddItem(productId: number) {
-    setLoading(true);
-    agent.Basket.addItem(productId)
-      .then(basket => setBasket(basket))
-      .catch(error => console.log(error))
-      .finally(() => setLoading(false))
-
-
-  }
 
   return (
 
@@ -47,14 +37,14 @@ const ProductCard = ({ product }: Props) => {
       />
       <CardContent>
         <Typography gutterBottom variant="h5" color='secondary.main'>
-          ₦{formatCurrency(product.price)}
+          {formatCurrency(product.price)}
         </Typography>
         <Typography variant="body2" color="text.secondary">
           {product.brand} / {product.type}
         </Typography>
       </CardContent>
       <CardActions>
-        <LoadingButton size="small" loading={loading} onClick={() => handleAddItem(product.id)}>Add To Cart</LoadingButton>
+        <LoadingButton size="small" loading={status.includes('pending' + product.id)} onClick={() => dispatch(addBasketItemAsync({ productId: product.id }))}>Add To Cart</LoadingButton>
         <Button size="small" component={Link} to={`/catalog/${product.id}`}> View</Button>
       </CardActions>
     </Card>
